@@ -72,7 +72,8 @@ class Policy(nn.Module):
         torch.save(self.state_dict(), self.checkpoint_file)
     
     def load_checkpoint(self):
-        self.load_state_dict(torch.load(self.checkpoint_file))
+        test_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.load_state_dict(torch.load(self.checkpoint_file, map_location=torch.device(test_device)))
 
 
 class Critic(nn.Module):
