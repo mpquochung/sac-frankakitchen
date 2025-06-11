@@ -17,8 +17,8 @@ class ReplayBuffer():
         self.expert_data_cutoff = 0
 
     def __len__(self):
-        return self.mem_ctr 
-    
+        return self.mem_ctr
+
     def can_sample(self, batch_size):
         if self.mem_ctr > (batch_size * 1000):
             return True
@@ -35,26 +35,36 @@ class ReplayBuffer():
         self.terminal_memory[index] = done
 
         self.mem_ctr += 1
-
+    
     def sample_buffer(self, batch_size):
         max_mem = min(self.mem_ctr, self.mem_size)
-        batch = np.random.choice(max_mem, batch_size, replace=False)
+
+        if self.expert_data_ratio > 0:
+            expert_data_quantity = int(batch_size * self.expert_data_ratio)
+            random_batch = np.random.choice(max_mem, batch_size - expert_data_quantity)
+            expert_batch = np.random.choice(self.expert_data_cutoff, expert_data_quantity)
+            batch = np.concatenate((random_batch, expert_batch))
+        else:
+            batch = np.random.choice(max_mem, batch_size)
 
         states = self.state_memory[batch]
+        next_states = self.next_state_memory[batch]
         actions = self.action_memory[batch]
         rewards = self.reward_memory[batch]
-        next_states = self.next_state_memory[batch]
         dones = self.terminal_memory[batch]
 
         if self.augment_data:
-            noise = np.random.normal(0, 1, states.shape) * self.augment_noise_ratio
-            states += noise
-            next_states += noise
+            state_noise_std = self.augment_noise_ratio * np.mean(np.abs(states))
+            action_noise_std = self.augment_noise_ratio * np.mean(np.abs(actions))
+            
+            states = states + np.random.normal(0, state_noise_std, states.shape)
+            actions = actions + np.random.normal(0, action_noise_std, actions.shape)
 
         if self.augment_rewards:
-            rewards *= np.random.uniform(0.5, 1.5, size=rewards.shape)
+            rewards = rewards * 100
 
         return states, actions, rewards, next_states, dones
+    
     
     def save_to_csv(self, filename):
         np.savez(filename,
@@ -83,3 +93,5 @@ class ReplayBuffer():
             
         except:
             print(f"Unable to load memory form {filename}")
+
+            
