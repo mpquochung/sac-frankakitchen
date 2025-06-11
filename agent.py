@@ -130,7 +130,6 @@ class Agent(object):
                         writer.add_scalar('loss/critic_2', critic_2_loss, updates)
                         writer.add_scalar('loss/policy', policy_loss, updates)
                         writer.add_scalar('loss/entropy_loss', ent_loss, updates)
-                        print(f"Update {updates}: Critic1 Loss={critic_1_loss}, Critic2 Loss={critic_2_loss}, Policy Loss={policy_loss}, Entropy Loss={ent_loss}, Alpha={alpha}")
                         updates += 1
                 
                 next_state, reward, done, _, _ = env.step(action)
@@ -146,10 +145,15 @@ class Agent(object):
                 state = next_state
 
             writer.add_scalar('reward/train', episode_reward, episode)
-            print("Episode: {}, Total numsteps: {}, episode steps: {}, reward: {}".format(episode,
+
+            print("Episode: {}, Total numsteps: {}, episode steps: {}, reward: {}, critic1 Loss: {}, Critic2 Loss: {}, Policy Loss: {}, Entropy Loss: {}".format(episode,
                                                                                           total_numsteps,
                                                                                           episode_steps,
-                                                                                          round(episode_reward, 2)))
+                                                                                          round(episode_reward, 2),
+                                                                                          round(critic_1_loss,4),
+                                                                                          round(critic_2_loss,4),
+                                                                                          round(policy_loss,4),
+                                                                                          round(ent_loss,4)))
 
             if episode % 10 == 0:
                 self.save_checkpoint()
