@@ -130,6 +130,7 @@ class Agent(object):
                         writer.add_scalar('loss/critic_2', critic_2_loss, updates)
                         writer.add_scalar('loss/policy', policy_loss, updates)
                         writer.add_scalar('loss/entropy_loss', ent_loss, updates)
+                        print(f"Update {updates}: Critic1 Loss={critic_1_loss}, Critic2 Loss={critic_2_loss}, Policy Loss={policy_loss}, Entropy Loss={ent_loss}, Alpha={alpha}")
                         updates += 1
                 
                 next_state, reward, done, _, _ = env.step(action)
